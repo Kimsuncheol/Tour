@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/contexts/ToastContext';
 import Modal from './auth/Modal';
 import AuthMethodSelector from './auth/AuthMethodSelector';
 import EmailLinkForm from './auth/EmailLinkForm';
 import GoogleAuthButton from './auth/GoogleAuthButton';
-import Alert from './auth/Alert';
 
 interface SignUpModalProps {
   isOpen: boolean;
@@ -16,23 +16,27 @@ interface SignUpModalProps {
 
 export default function SignUpModal({ isOpen, onClose, onOpenSignIn }: SignUpModalProps) {
   const { signInWithGoogle, sendEmailLink } = useAuth();
+  const { showToast } = useToast();
   const [email, setEmail] = useState('');
   const [method, setMethod] = useState<'email-link' | 'google'>('email-link');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
 
   const handleEmailLinkSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-    setMessage('');
 
     try {
       await sendEmailLink(email);
-      setMessage('Verification link sent! Check your email to complete sign-up.');
+      showToast({
+        message: 'Verification link sent! Check your email to complete sign-up.',
+        severity: 'success',
+      });
+      setEmail('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send verification link');
+      showToast({
+        message: err instanceof Error ? err.message : 'Failed to send verification link',
+        severity: 'error',
+      });
     } finally {
       setLoading(false);
     }
@@ -40,13 +44,19 @@ export default function SignUpModal({ isOpen, onClose, onOpenSignIn }: SignUpMod
 
   const handleGoogleSignUp = async () => {
     setLoading(true);
-    setError('');
 
     try {
       await signInWithGoogle();
+      showToast({
+        message: 'Signed up with Google. Welcome aboard!',
+        severity: 'success',
+      });
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign up with Google');
+      showToast({
+        message: err instanceof Error ? err.message : 'Failed to sign up with Google',
+        severity: 'error',
+      });
     } finally {
       setLoading(false);
     }
@@ -54,9 +64,6 @@ export default function SignUpModal({ isOpen, onClose, onOpenSignIn }: SignUpMod
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Create account" subtitle="Start your journey with us">
-      {error && <Alert type="error" message={error} />}
-      {message && <Alert type="success" message={message} />}
-
       <AuthMethodSelector method={method} onMethodChange={setMethod} />
 
       {method === 'email-link' && (

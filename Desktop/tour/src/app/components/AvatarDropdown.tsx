@@ -4,10 +4,11 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Avatar } from '@mui/material';
 import { CustomizedUser } from '@/interfaces/userInterface';
+import { useToast } from '@/contexts/ToastContext';
 
 interface AvatarDropdownProps {
   user: CustomizedUser | null;
-  signOut: () => void;
+  signOut: () => Promise<void>;
   onSignInClick: () => void;
 }
 
@@ -15,6 +16,7 @@ export default function AvatarDropdown({ user, signOut, onSignInClick }: AvatarD
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const { showToast } = useToast();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -43,9 +45,21 @@ export default function AvatarDropdown({ user, signOut, onSignInClick }: AvatarD
     router.push('/profile');
   };
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
     setIsOpen(false);
-    signOut();
+    try {
+      await signOut();
+      showToast({
+        message: 'Signed out successfully.',
+        severity: 'success',
+      });
+    } catch (err) {
+      console.error('Failed to sign out:', err);
+      showToast({
+        message: err instanceof Error ? err.message : 'Failed to sign out. Please try again.',
+        severity: 'error',
+      });
+    }
   };
 
   const handleSignIn = () => {

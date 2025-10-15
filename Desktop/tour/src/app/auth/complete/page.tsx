@@ -5,11 +5,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { auth } from '@/lib/firebase';
 import { isSignInWithEmailLink } from 'firebase/auth';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function CompleteEmailLinkPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { completeEmailLinkSignIn } = useAuth();
+  const { showToast } = useToast();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(true);
 
@@ -30,15 +32,26 @@ export default function CompleteEmailLinkPage() {
         if (!email) throw new Error('Email is required to finish sign-in.');
 
         await completeEmailLinkSignIn(email);
-
+        showToast({
+          message: 'Signed in successfully.',
+          severity: 'success',
+        });
         router.replace('/');
-      } catch (e: any) {
-        setError(e?.message ?? 'Failed to complete sign-in.');
+      } catch (error: unknown) {
+        const message =
+          error instanceof Error && error.message
+            ? error.message
+            : 'Failed to complete sign-in.';
+        setError(message);
+        showToast({
+          message,
+          severity: 'error',
+        });
       } finally {
         setBusy(false);
       }
     })();
-  }, [router, searchParams, completeEmailLinkSignIn]);
+  }, [router, searchParams, completeEmailLinkSignIn, showToast]);
 
   if (busy || error) {
     return (
