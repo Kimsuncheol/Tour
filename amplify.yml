@@ -1,6 +1,7 @@
 version: 1
 applications:
-  - frontend:
+  - appRoot: .
+    frontend:
       phases:
         preBuild:
           commands:
@@ -9,10 +10,11 @@ applications:
           commands:
             - npm run build
       artifacts:
+        # SSR은 정적 산출물을 따로 지정하지 않습니다(Amplify가 .next를 인식).
         baseDirectory: .next
         files:
           - '**/*'
       cache:
         paths:
           - node_modules/**/*
-    appRoot: .
+    # SSR은 별도 리라이트 없이 Amplify가 라우팅을 처리
