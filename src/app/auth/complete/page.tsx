@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { auth } from '@/lib/firebase';
 import { isSignInWithEmailLink } from 'firebase/auth';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,7 +9,6 @@ import { useToast } from '@/contexts/ToastContext';
 
 export default function CompleteEmailLinkPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { completeEmailLinkSignIn } = useAuth();
   const { showToast } = useToast();
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +50,7 @@ export default function CompleteEmailLinkPage() {
         setBusy(false);
       }
     })();
-  }, [router, searchParams, completeEmailLinkSignIn, showToast]);
+  }, [router, completeEmailLinkSignIn, showToast]);
 
   if (busy || error) {
     return (
